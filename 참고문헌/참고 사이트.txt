@@ -1,0 +1,2 @@
+1. VMware에서 nat와 bridged 네트워크 방식의 차이점
+https://dev18.tistory.com/20
