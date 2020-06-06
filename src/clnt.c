@@ -14,7 +14,7 @@ void * recv_msg(void * arg);
 void error_handling(char * msg);
 
 //전역 변수 
-char name[NAME_SIZE]="[DEFAULT]"; //이름을 기재하지 않으면 디폴트가 들어감
+char name[NAME_SIZE]="익명"; //이름을 기재하지 않으면 '익명' id가 들어감
 char msg[BUF_SIZE];
 	
 int main(int argc, char *argv[])
@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	 }
 	
-	sprintf(name, "[%s]", argv[3]);
+	sprintf(name, "[%s] : ", argv[3]);
 	sock=socket(PF_INET, SOCK_STREAM, 0);
 	
 	memset(&serv_addr, 0, sizeof(serv_addr));

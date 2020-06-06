@@ -21,7 +21,6 @@ void* change_line(void *arg); //게임 문제(노선)를 바꾸는 함수  -> �
 void download_api(int line); //필요한 api를 다운로드 받는 함수 
 void decide_turn(); //라운드마다 사용자의 순서를 정하는 함수 (구현x)
 int check_answer(char* msg); //사용자가 입력한 역이름이 노선에 해당하는지 체크 (구현 중)
-void jsonToC(); // api를 통해 다운받은 파일을 C로 파싱하는 함수 (구현 중)
 
 
 //전역변수 
@@ -61,7 +60,7 @@ int main(int argc, char *argv[])
 
 	while(1) //main 문 안 끝나게 -> 메인 쓰레드가 끝나면 다른 쓰레드들도 다 종료되므로  
 	{	
-		//?? 사용자를 3명만 받을라면.. 3명의 클라이언트만 accept 해야 됨, 안 그러면 connect 되버림
+		// 사용자를 3명만 받게 함 -> 3명의 클라이언트만 accept 해야 됨, 안 그러면 connect 되버림
 		if(clnt_cnt<=2){
 			clnt_adr_sz=sizeof(clnt_adr);
 			clnt_sock=accept(serv_sock, (struct sockaddr*)&clnt_adr,&clnt_adr_sz); //<accept> : 접속하는 클라이언트를의 연결을 허용하는 부분
@@ -189,8 +188,31 @@ void* change_line(void *arg){
 }
 
 //사용자가 입력한 답이 맞는지 체크하는 기능
-int check_answer(char* msg){
+int check_answer(char* msg){ //어떤 파일인지도 인자로 넘겨줘야 함.. 현재 
 	
+	FILE* fp;
+	char buffer[300];
+	char fname[20] = "2호선";
+	//char word[20] = "잠실";
+
+	fp = fopen(fname, "r"); 
+	if(fp == NULL){
+		fprintf(stderr, "%s 파일을 열 수 없습니다. \n", fname);
+		exit(1);
+	}
+
+	while(fgets(buffer, 300, fp)){
+		
+		if(strstr(buffer, msg)){ //문자열을 찾아주는 함수
+		
+			return true; //단어를 발견하면 true 값(1)을 반환
+		}
+	}
+
+	fclose(fp);
+
+	return false;
+
 }
 
 
@@ -226,12 +248,13 @@ void * handle_clnt(void * arg)
 
 	//① 클라이언트로부터 수신된 메시지를 모든 클라이언트에게 전달하는 코드
 	while((str_len=read(clnt_sock, msg, sizeof(msg)))!=0){ //쓰레드가 끝나지 않도록 while문
-		send_msg(msg, str_len);
+		send_msg(msg, str_len); 
+		printf("안녕하세요 %s", msg); // 
 
 		sleep(1);
 
 		//답 체크
-		if(check_answer(msg)){ 
+		if(check_answer(msg) == true){ //<error>여기엔 문제 없음...msg에 값이 안 들어가거나 이상한 값이 들어가 있음
 			msg1 = "정답입니다.\n";
 			send_msg(msg1,20);
 			answer_cnt++;
@@ -270,6 +293,8 @@ void send_msg(char * msg, int len)   // send to all
 		write(clnt_socks[i], msg, len); //임계 영역
 	pthread_mutex_unlock(&mutx);
 }
+
+
 void error_handling(char * msg)
 {
 	fputs(msg, stderr);
