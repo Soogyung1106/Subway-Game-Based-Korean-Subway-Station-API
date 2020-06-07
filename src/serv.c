@@ -106,8 +106,8 @@ void start_game(){
 			send_msg(msg4, 2000);
 
 			download_api(2);
-			char msg5[40] = "이번 문제는 2호선입니다.\n";
-			send_msg(msg5, 40);
+			char msg5[100] = "***********************이번 라운드는 2호선입니다.**********************\n";
+			send_msg(msg5, 100);
 			sleep(1);
 			
 	}
@@ -137,7 +137,7 @@ void* change_line(void *arg){
 		if(answer_cnt == 10 ) { //10개 맞출 때마다
 
 			
-			char msg1[100] = "10개의 역을 모두 맞추셨습니다.\n";
+			char msg1[100] = "10개의 역을 모두 맞추셨습니다!!\n";
 			send_msg(msg1, 100);	
 			sleep(1);
 			round_cnt++;
@@ -151,7 +151,7 @@ void* change_line(void *arg){
 					download_line4 = true;
 				}
 				
-				msg = "다음 라운드는 4호선입니다.\n";
+				msg = "\n************************다음 라운드는 4호선입니다.**********************\n";
 				send_msg(msg, 100);
 				sleep(1);
 			
@@ -164,7 +164,7 @@ void* change_line(void *arg){
 				}
 				*/
 
-				msg = "다음 라운드는 2호선입니다.\n";
+				msg = "\n************************다음 라운드는 2호선입니다.**********************\n";
 				send_msg(msg, 100);
 				sleep(1);
 			
@@ -175,7 +175,7 @@ void* change_line(void *arg){
 					download_line1 = true;
 				}
 
-				msg = "다음 라운드는 1호선입니다.\n";
+				msg = "\n**********************다음 라운드는 1호선입니다.**********************\n";
 				send_msg(msg, 100);
 				sleep(1);
 			
@@ -269,7 +269,7 @@ void * handle_clnt(void * arg)
 
 		//답 체크
 		if(check_answer(msg) == true){ //<error>여기엔 문제 없음...msg에 값이 안 들어가거나 이상한 값이 들어가 있음
-			msg1 = "정답입니다.\n";
+			msg1 = "정답입니다\n";
 			send_msg(msg1,20);
 			answer_cnt++;
 		}else{
