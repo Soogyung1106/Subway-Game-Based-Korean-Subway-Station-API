@@ -137,7 +137,7 @@ void* change_line(void *arg){
 		if(answer_cnt == 10 ) { //10개 맞출 때마다
 
 			
-			char msg1[100] = "축하합니다!! 10개의 역을 모두 맞추셨습니다.\n";
+			char msg1[100] = "10개의 역을 모두 맞추셨습니다.\n";
 			send_msg(msg1, 100);	
 			sleep(1);
 			round_cnt++;
@@ -151,7 +151,7 @@ void* change_line(void *arg){
 					download_line4 = true;
 				}
 				
-				msg = "이번 문제는 4호선입니다.\n";
+				msg = "다음 라운드는 4호선입니다.\n";
 				send_msg(msg, 100);
 				sleep(1);
 			
@@ -164,7 +164,7 @@ void* change_line(void *arg){
 				}
 				*/
 
-				msg = "이번 문제는 2호선입니다.\n";
+				msg = "다음 라운드는 2호선입니다.\n";
 				send_msg(msg, 100);
 				sleep(1);
 			
@@ -175,7 +175,7 @@ void* change_line(void *arg){
 					download_line1 = true;
 				}
 
-				msg = "이번 문제는 1호선입니다.\n";
+				msg = "다음 라운드는 1호선입니다.\n";
 				send_msg(msg, 100);
 				sleep(1);
 			
@@ -192,8 +192,23 @@ int check_answer(char* msg){ //어떤 파일인지도 인자로 넘겨줘야 함
 	
 	FILE* fp;
 	char buffer[300];
-	char fname[20] = "2호선";
-	//char word[20] = "잠실";
+	char* fname;
+
+	if(round_cnt %3 == 0){
+		fname = "4호선";
+	}else if(round_cnt %3 == 1){
+		fname = "2호선";
+	}else if(round_cnt %3 == 2){
+		fname = "1호선";
+	}
+
+
+	// 주의: 메시지가 전달될 때 "[jsk] 대림\n" 식으로 전달됨.
+	char* ptr = strtok(msg, " "); //1차: " " 공백 문자를 기준으로 문자열 자름
+	ptr = strtok(NULL, "\n"); //2차: "\n" 엔터키에 NULL을 넣고 자름
+
+	msg = ptr;
+
 
 	fp = fopen(fname, "r"); 
 	if(fp == NULL){
@@ -204,8 +219,8 @@ int check_answer(char* msg){ //어떤 파일인지도 인자로 넘겨줘야 함
 	while(fgets(buffer, 300, fp)){
 		
 		if(strstr(buffer, msg)){ //문자열을 찾아주는 함수
-		
 			return true; //단어를 발견하면 true 값(1)을 반환
+			break;
 		}
 	}
 
@@ -249,8 +264,7 @@ void * handle_clnt(void * arg)
 	//① 클라이언트로부터 수신된 메시지를 모든 클라이언트에게 전달하는 코드
 	while((str_len=read(clnt_sock, msg, sizeof(msg)))!=0){ //쓰레드가 끝나지 않도록 while문
 		send_msg(msg, str_len); 
-		printf("안녕하세요 %s", msg); // 
-
+		//printf("안녕하세요%s안녕하세요\n", msg);		
 		sleep(1);
 
 		//답 체크
@@ -259,7 +273,7 @@ void * handle_clnt(void * arg)
 			send_msg(msg1,20);
 			answer_cnt++;
 		}else{
-			msg1 = "틀렸습니다.\n"; //OO역은 OO노선에 해당하지 않습니다.
+			msg1 = "틀렸습니다.\n"; //<수정> OO역은 OO노선에 해당하지 않습니다.
 			send_msg(msg1,20);
 		}
 	}
