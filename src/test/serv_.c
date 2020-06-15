@@ -19,7 +19,8 @@ void error_handling(char * msg);
 void start_game(); //게임이 시작됐을 때 호출되는 함수
 void* change_line(void *arg); //게임 문제(노선)를 바꾸는 함수  -> 쓰레드
 void download_api(int line); //필요한 api를 다운로드 받는 함수 
-int check_answer(char* msg); //사용자가 입력한 역이름이 노선에 해당하는지 체크
+void decide_turn(); //라운드마다 사용자의 순서를 정하는 함수 (구현x)
+int check_answer(char* msg); //사용자가 입력한 역이름이 노선에 해당하는지 체크 (구현 중)
 
 
 //전역변수 
@@ -57,13 +58,12 @@ int main(int argc, char *argv[])
 	pthread_create(&t_id, NULL, change_line, NULL); //change_line 쓰레드 
 	pthread_detach(t_id);
 
-	while(1) // 메인 쓰레드가 끝나면 다른 쓰레드들도 다 종료됨  
+	while(1) //main 문 안 끝나게 -> 메인 쓰레드가 끝나면 다른 쓰레드들도 다 종료되므로  
 	{	
-		// 사용자를 3명만 받게 함 -> 3명의 클라이언트만 accept 해야 됨, 그렇지 않으면 connect 됨.
+		// 사용자를 3명만 받게 함 -> 3명의 클라이언트만 accept 해야 됨, 안 그러면 connect 되버림
 		if(clnt_cnt<=2){
 			clnt_adr_sz=sizeof(clnt_adr);
-			clnt_sock=accept(serv_sock, (struct sockaddr*)&clnt_adr,&clnt_adr_sz); 
-			//<accept> : 접속하는 클라이언트를의 연결을 허용하는 부분
+			clnt_sock=accept(serv_sock, (struct sockaddr*)&clnt_adr,&clnt_adr_sz); //<accept> : 접속하는 클라이언트를의 연결을 허용하는 부분
 		
 			pthread_mutex_lock(&mutx); 
 			clnt_socks[clnt_cnt++]=clnt_sock; //임계영역
@@ -102,7 +102,7 @@ void start_game(){
 			
 			sleep(2);
 
-			char msg4[2000] = "<< 게임 규칙 >>\n1. 3명의 사용자가 참여해야 게임이 시작됩니다.\n2. 총 10개의 역이름을 맞추면 다음 문제로 넘어갑니다.\n6. 문제는 2호선 -> 1호선 -> 4호선 순서로 반복됩니다.\n\n";
+			char msg4[2000] = "<< 게임 규칙 >>\n1. 매번 문제가 바뀔 때마다, 임의로 순서가 정해집니다.\n2. 자신의 순번일 때만 답을 입력할 수 있습니다.\n3. 다른 사용자가 말한 역을 입력할 수 없습니다.\n4. 역이름이 기억나지 않는다면 'pass'를 입력하세요.\n5. 3명의 사용자가 총 10개의 역이름을 맞추면 다음 문제로 넘어갑니다.\n6. 문제는 2호선 -> 1호선 -> 4호선 순서로 반복됩니다.\n\n";
 			send_msg(msg4, 2000);
 
 			download_api(2);
@@ -117,6 +117,14 @@ void start_game(){
 
 //라운드를 바꿈, 문제를 바꾸는 함수
 void* change_line(void *arg){
+
+	/* 순서 정할 때, decide_turn() 함수 호출하기 
+	순서를 정하겠습니다. 
+	두구두구두구.....
+	sleep(3) 
+	순서는 [ 뿡뿡이]-> [깜찌기] -> [jsk] 입니다.
+	2호선 역을 말해주세요
+	*/
 
 	char* msg;
 
@@ -252,40 +260,27 @@ void * handle_clnt(void * arg)
 	int str_len=0, i;
 	char msg[BUF_SIZE];
 	char* msg1;
-	char* cur_line;
-
-	if(round_cnt %3 == 0){
-		cur_line = "4호선";
-	}else if(round_cnt %3 == 1){
-		cur_line = "2호선";
-	}else if(round_cnt %3 == 2){
-		cur_line = "1호선";
-	}
-
 
 	//① 클라이언트로부터 수신된 메시지를 모든 클라이언트에게 전달하는 코드
 	while((str_len=read(clnt_sock, msg, sizeof(msg)))!=0){ //쓰레드가 끝나지 않도록 while문
-		send_msg(msg, str_len); 		
+		send_msg(msg, str_len); 
+		//printf("안녕하세요%s안녕하세요\n", msg);		
 		sleep(1);
 
 		//답 체크
-		if(check_answer(msg) == true){
-			msg1 = "정답입니다!\n";
+		if(check_answer(msg) == true){ //<error>여기엔 문제 없음...msg에 값이 안 들어가거나 이상한 값이 들어가 있음
+			msg1 = "정답입니다\n";
 			send_msg(msg1,20);
 			answer_cnt++;
 		}else{
-			msg1 = "틀렸습니다.\n"; //<수정> OO역은 OO노선에 해당하지 않습니다
-			
-			//msg1 = "에 해당하지 않습니다.\n"; //<수정> OO역은 OO노선에 해당하지 않습니다
-			//strcat(cur_line, msg1); // 2호선에 해당하지 않습니다.
-			
-			send_msg(msg1,60);
+			msg1 = "틀렸습니다.\n"; //<수정> OO역은 OO노선에 해당하지 않습니다.
+			send_msg(msg1,20);
 		}
 	}
 	
 	//② 사후처리
 	pthread_mutex_lock(&mutx);  
-	for(i=0; i<clnt_cnt; i++)   // 연결되지 않은 클라이언트 삭제하기
+	for(i=0; i<clnt_cnt; i++)   // remove disconnected client
 	{
 		if(clnt_sock==clnt_socks[i])
 		{
