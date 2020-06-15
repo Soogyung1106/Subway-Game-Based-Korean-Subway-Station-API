@@ -1,11 +1,0 @@
---2020-06-07 18:18:45--  http://openapi.seoul.go.kr:8088/4868476866736f6f3637734a537279/json/SearchSTNBySubwayLineInfo/1/98/%20/%20/1%ED%98%B8%EC%84%A0
-Resolving openapi.seoul.go.kr (openapi.seoul.go.kr)... 115.84.165.45
-접속 openapi.seoul.go.kr (openapi.seoul.go.kr)|115.84.165.45|:8088... 접속됨.
-HTTP request sent, awaiting response... 200 ‘wget-log’
-Length: unspecified [application/json]
-Saving to: ‘1호선’
-
-1호선                   [<=>                 ]       0  --.-KB/s               1호선                   [ <=>                ]  10.85K  --.-KB/s    in 0s      
-
-2020-06-07 18:18:45 (183 MB/s) - ‘1호선’ saved [11114]
-

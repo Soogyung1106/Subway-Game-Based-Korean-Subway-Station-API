@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 	pthread_join(rcv_thread, &thread_return);
 	close(sock);  
 	return 0;
-}
+}  
 	
 void * send_msg(void * arg)   // send thread main
 {
